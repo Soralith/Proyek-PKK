@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Laporan Progres - Sora LMS{% endblock %}
+{% block page_title %}Laporan Progres Kelas{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left me-1"></i>{{ course.title }}
+    </a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-700 mb-1">Progres Siswa - {{ course.title }}</h5>
+        <p class="text-muted small mb-0">{{ enrollments.count }} siswa terdaftar</p>
+    </div>
+</div>
+
+<div class="sora-card">
+    <div class="card-body-sora p-0">
+        <table class="table sora-table mb-0">
+            <thead>
+                <tr>
+                    <th>Siswa</th>
+                    <th>Progres Materi</th>
+                    <th>Terdaftar</th>
+                    <th>Status</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for enrollment in enrollments %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;flex-shrink:0;">
+                            {{ enrollment.student.first_name|first|upper|default:enrollment.student.username|first|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-600" style="font-size:0.85rem;">{{ enrollment.student.get_full_name|default:enrollment.student.username }}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">{{ enrollment.student.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="min-width:150px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress-bar-sora flex-grow-1">
+                            <div class="progress-fill" style="width:{{ enrollment.progress }}%;"></div>
+                        </div>
+                        <span class="fw-600" style="font-size:0.8rem; color:#6366f1; white-space:nowrap;">{{ enrollment.progress|floatformat:0 }}%</span>
+                    </div>
+                </td>
+                <td class="text-muted" style="font-size:0.8rem;">{{ enrollment.enrolled_at|date:"d M Y" }}</td>
+                <td>
+                    {% if enrollment.progress >= 100 %}
+                    <span class="badge bg-success bg-opacity-15 text-success rounded-pill" style="font-size:0.72rem;">Selesai</span>
+                    {% elif enrollment.progress > 0 %}
+                    <span class="badge bg-primary bg-opacity-15 text-primary rounded-pill" style="font-size:0.72rem;">Dalam Proses</span>
+                    {% else %}
+                    <span class="badge bg-secondary bg-opacity-15 text-secondary rounded-pill" style="font-size:0.72rem;">Belum Mulai</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'dashboard:progress_report' course_slug=course.slug %}?student={{ enrollment.student.pk }}" class="btn btn-xs btn-outline-secondary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">Detail</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-5">Belum ada siswa terdaftar</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Kelola Siswa - {{ course.title }}{% endblock %}
+{% block page_title %}Kelola Siswa Kelas{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left me-1"></i>Kembali ke {{ course.title }}
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <!-- Daftar siswa terdaftar -->
+    <div class="col-lg-7">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0">
+                    <i class="bi bi-people-fill me-2 text-primary"></i>
+                    Siswa Terdaftar
+                </h6>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3">{{ enrollments.count }} siswa</span>
+            </div>
+            <div class="card-body-sora p-0">
+                {% if enrollments %}
+                <table class="table sora-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Siswa</th>
+                            <th>Progres</th>
+                            <th>Terdaftar</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;flex-shrink:0;">
+                                    {{ enrollment.student.first_name|first|upper|default:enrollment.student.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-600" style="font-size:0.85rem;">{{ enrollment.student.get_full_name|default:enrollment.student.username }}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">{{ enrollment.student.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2" style="min-width:100px;">
+                                <div class="progress-bar-sora flex-grow-1">
+                                    <div class="progress-fill" style="width:{{ enrollment.progress }}%;"></div>
+                                </div>
+                                <span style="font-size:0.75rem; color:#6366f1; font-weight:600;">{{ enrollment.progress|floatformat:0 }}%</span>
+                            </div>
+                        </td>
+                        <td class="text-muted" style="font-size:0.78rem;">{{ enrollment.enrolled_at|date:"d M Y" }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Keluarkan siswa ini dari kelas?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <input type="hidden" name="enrollment_id" value="{{ enrollment.pk }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:0.72rem; padding:0.25rem 0.6rem;">
+                                    <i class="bi bi-person-dash me-1"></i>Keluarkan
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people" style="font-size:2.5rem; color:#cbd5e1;"></i>
+                    <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">Belum ada siswa di kelas ini.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tambah siswa -->
+    <div class="col-lg-5">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0">
+                    <i class="bi bi-person-plus-fill me-2 text-success"></i>
+                    Tambah Siswa ke Kelas
+                </h6>
+            </div>
+            <div class="card-body-sora">
+                {% if available_students %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add">
+
+                    <div class="mb-3">
+                        <label class="mb-1">Cari Siswa</label>
+                        <input type="text" id="searchSiswa" class="form-control" placeholder="Ketik nama atau username...">
+                    </div>
+
+                    <div style="max-height:340px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px;" id="studentList">
+                        {% for student in available_students %}
+                        <label class="d-flex align-items-center gap-3 px-3 py-2 student-item" style="cursor:pointer; border-bottom:1px solid #f1f5f9; transition:background 0.15s;"
+                               onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                            <input type="checkbox" name="student_ids" value="{{ student.pk }}" class="form-check-input m-0" style="flex-shrink:0;">
+                            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-size:0.78rem;font-weight:700;flex-shrink:0;">
+                                {{ student.first_name|first|upper|default:student.username|first|upper }}
+                            </div>
+                            <div class="student-info">
+                                <div class="fw-600" style="font-size:0.83rem;">{{ student.get_full_name|default:student.username }}</div>
+                                <div class="text-muted" style="font-size:0.72rem;">{{ student.email|default:student.username }}</div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-muted small" id="selectedCount">0 siswa dipilih</span>
+                        <button type="submit" class="btn btn-sora-primary px-4">
+                            <i class="bi bi-person-plus me-2"></i>Tambahkan
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-check-circle" style="font-size:2rem; color:#10b981;"></i>
+                    <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">Semua siswa sudah terdaftar di kelas ini.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search filter
+document.getElementById('searchSiswa')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.student-item').forEach(item => {
+        const name = item.querySelector('.student-info').textContent.toLowerCase();
+        item.style.display = name.includes(q) ? '' : 'none';
+    });
+});
+
+// Count selected
+document.querySelectorAll('input[name="student_ids"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+        const count = document.querySelectorAll('input[name="student_ids"]:checked').length;
+        document.getElementById('selectedCount').textContent = `${count} siswa dipilih`;
+    });
+});
+</script>
+{% endblock %}

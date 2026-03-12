@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} - Sora LMS{% endblock %}
+{% block page_title %}{{ quiz.title }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="sora-card mb-4">
+            <div class="card-header-sora">
+                <div>
+                    <h5 class="fw-700 mb-1">{{ quiz.title }}</h5>
+                    <small class="text-muted">{{ course.title }}</small>
+                </div>
+                {% if user == course.teacher or user.is_admin %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'quizzes:quiz_edit' pk=quiz.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a href="{% url 'quizzes:question_create' quiz_pk=quiz.pk %}" class="btn btn-sm btn-sora-primary">+ Soal</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body-sora">
+                {% if quiz.description %}<p class="text-muted mb-4">{{ quiz.description }}</p>{% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="text-center p-3 rounded-3" style="background:#dbeafe;">
+                            <div class="fw-700" style="color:#2563eb; font-size:1.3rem;">{{ quiz.get_question_count }}</div>
+                            <div style="font-size:0.72rem; color:#1d4ed8;">Soal</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-center p-3 rounded-3" style="background:#fef3c7;">
+                            <div class="fw-700" style="color:#d97706; font-size:1.3rem;">
+                                {% if quiz.time_limit %}{{ quiz.time_limit }}'{% else %}∞{% endif %}
+                            </div>
+                            <div style="font-size:0.72rem; color:#92400e;">Waktu</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-center p-3 rounded-3" style="background:#dcfce7;">
+                            <div class="fw-700" style="color:#16a34a; font-size:1.3rem;">{{ quiz.passing_score }}%</div>
+                            <div style="font-size:0.72rem; color:#15803d;">Nilai Lulus</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-center p-3 rounded-3" style="background:#ede9fe;">
+                            <div class="fw-700" style="color:#7c3aed; font-size:1.3rem;">
+                                {% if quiz.max_attempts %}{{ quiz.max_attempts }}x{% else %}∞{% endif %}
+                            </div>
+                            <div style="font-size:0.72rem; color:#6d28d9;">Percobaan</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if user.is_student %}
+                    {% if attempts %}
+                    <div class="mb-4">
+                        <h6 class="fw-600 mb-2">Riwayat Percobaan</h6>
+                        {% for attempt in attempts %}
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-2 {% if attempt.is_passed %}border-success{% else %}border-danger{% endif %}" style="border:1px solid; {% if attempt.is_passed %}border-color:#bbf7d0; background:#f0fdf4;{% else %}border-color:#fecaca; background:#fff1f2;{% endif %}">
+                            <div>
+                                <div class="fw-600" style="font-size:0.875rem;">Percobaan {{ forloop.counter }}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">{{ attempt.started_at|date:"d M Y, H:i" }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-700 fs-5" style="color:{% if attempt.is_passed %}#16a34a{% else %}#dc2626{% endif %};">
+                                    {{ attempt.percentage|floatformat:0 }}%
+                                </div>
+                                <a href="{% url 'quizzes:quiz_result' attempt_pk=attempt.pk %}" class="btn btn-xs btn-outline-secondary" style="font-size:0.7rem; padding:0.2rem 0.5rem;">Lihat Detail</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if quiz.is_published %}
+                    <a href="{% url 'quizzes:start_quiz' pk=quiz.pk %}" class="btn btn-sora-primary px-5">
+                        <i class="bi bi-play-fill me-2"></i>{% if attempts %}Coba Lagi{% else %}Mulai Kuis{% endif %}
+                    </a>
+                    {% endif %}
+                {% endif %}
+
+                {% if questions_with_answers %}
+                <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+                    <h6 class="fw-600 mb-0">Daftar Soal ({{ quiz.get_question_count }})</h6>
+                    <a href="{% url 'quizzes:question_create' quiz_pk=quiz.pk %}" class="btn btn-sm btn-sora-primary">
+                        <i class="bi bi-plus me-1"></i>Tambah Soal
+                    </a>
+                </div>
+                {% for question in questions_with_answers %}
+                <div class="p-3 rounded-3 mb-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-600" style="font-size:0.875rem; flex:1;">{{ forloop.counter }}. {{ question.text }}</div>
+                        <div class="d-flex gap-1 ms-2 flex-shrink-0">
+                            <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:0.7rem;">{{ question.get_question_type_display }}</span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size:0.7rem;">{{ question.points }} poin</span>
+                            <a href="{% url 'quizzes:question_edit' pk=question.pk %}"
+                               class="btn btn-xs btn-outline-primary"
+                               style="font-size:0.7rem; padding:0.15rem 0.5rem;">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a href="{% url 'quizzes:question_delete' pk=question.pk %}"
+                               class="btn btn-xs btn-outline-danger"
+                               style="font-size:0.7rem; padding:0.15rem 0.5rem;">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% if question.answers.all %}
+                    <div class="mt-2 d-flex flex-column gap-1">
+                    {% for answer in question.answers.all %}
+                    <div class="d-flex align-items-center gap-2 small px-2 py-1 rounded-2
+                                {% if answer.is_correct %}text-success fw-600{% else %}text-muted{% endif %}"
+                         style="{% if answer.is_correct %}background:#f0fdf4;{% endif %}">
+                        <i class="bi bi-{% if answer.is_correct %}check-circle-fill text-success{% else %}circle{% endif %}" style="font-size:0.8rem; flex-shrink:0;"></i>
+                        {{ answer.text }}
+                    </div>
+                    {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if question.explanation %}
+                    <div class="mt-2 px-2 py-1 rounded-2 small text-muted" style="background:#fef9c3;">
+                        <i class="bi bi-lightbulb me-1 text-warning"></i>{{ question.explanation }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-4 mt-3" style="border:2px dashed #e2e8f0; border-radius:12px;">
+                    <i class="bi bi-question-circle" style="font-size:2rem; color:#cbd5e1;"></i>
+                    <p class="text-muted mt-2 mb-2" style="font-size:0.85rem;">Belum ada soal. Tambahkan soal pertama!</p>
+                    <a href="{% url 'quizzes:question_create' quiz_pk=quiz.pk %}" class="btn btn-sm btn-sora-primary">
+                        <i class="bi bi-plus me-1"></i>Tambah Soal
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

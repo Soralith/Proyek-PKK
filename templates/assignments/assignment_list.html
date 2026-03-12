@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Tugas - {{ course.title }}{% endblock %}
+{% block page_title %}Tugas - {{ course.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'courses:course_detail' slug=course.slug %}" class="text-muted text-decoration-none small">
+            <i class="bi bi-arrow-left me-1"></i>{{ course.title }}
+        </a>
+        <h5 class="fw-700 mt-1 mb-0">Daftar Tugas</h5>
+    </div>
+    {% if user == course.teacher or user.is_admin %}
+    <a href="{% url 'assignments:assignment_create' course_slug=course.slug %}" class="btn btn-sora-primary">
+        <i class="bi bi-plus me-1"></i>Buat Tugas
+    </a>
+    {% endif %}
+</div>
+
+{% if assignments %}
+<div class="row g-3">
+{% for assignment in assignments %}
+<div class="col-md-6 col-lg-4">
+    <div class="sora-card h-100">
+        <div class="card-body-sora">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="fw-600" style="font-size:0.95rem;">{{ assignment.title }}</div>
+                {% for sub_id, sub in submission_map.items %}
+                    {% if sub_id == assignment.pk %}
+                    <span class="badge rounded-pill px-2 {% if sub.status == 'graded' %}bg-success{% elif sub.status == 'late' %}bg-danger{% else %}bg-primary{% endif %} bg-opacity-15 text-{% if sub.status == 'graded' %}success{% elif sub.status == 'late' %}danger{% else %}primary{% endif %}" style="font-size:0.68rem;">
+                        {{ sub.get_status_display }}
+                    </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <p class="text-muted small mb-3" style="line-height:1.5;">{{ assignment.description|truncatechars:80 }}</p>
+            <div class="d-flex flex-column gap-1 mb-3" style="font-size:0.78rem; color:#64748b;">
+                <span><i class="bi bi-calendar3 me-1 {% if assignment.is_overdue %}text-danger{% else %}text-warning{% endif %}"></i>
+                    Deadline: {{ assignment.due_date|date:"d M Y, H:i" }}
+                    {% if assignment.is_overdue %}<span class="text-danger ms-1">(Terlambat)</span>{% endif %}
+                </span>
+                <span><i class="bi bi-award me-1 text-primary"></i>Nilai Maks: {{ assignment.max_score }}</span>
+                {% if not user.is_student %}
+                <span><i class="bi bi-people me-1 text-success"></i>{{ assignment.get_submission_count }} pengumpulan</span>
+                {% endif %}
+            </div>
+            <a href="{% url 'assignments:assignment_detail' pk=assignment.pk %}" class="btn btn-sm btn-sora-primary w-100">
+                {% if user.is_student %}Lihat & Kumpulkan{% else %}Kelola Tugas{% endif %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="sora-card">
+    <div class="card-body-sora text-center py-5">
+        <i class="bi bi-journal-text" style="font-size:3rem; color:#cbd5e1;"></i>
+        <p class="text-muted mt-3">Belum ada tugas di kelas ini.</p>
+        {% if user == course.teacher or user.is_admin %}
+        <a href="{% url 'assignments:assignment_create' course_slug=course.slug %}" class="btn btn-sora-primary">Buat Tugas Pertama</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

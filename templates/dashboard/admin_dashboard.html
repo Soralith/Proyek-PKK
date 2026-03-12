@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Admin - Sora LMS{% endblock %}
+{% block page_title %}Dashboard Admin{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-value">{{ stats.total_users }}</div>
+                    <div class="stat-label">Total Pengguna</div>
+                </div>
+                <div class="stat-icon" style="background:#ede9fe; color:#7c3aed;"><i class="bi bi-people-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-value">{{ stats.active_courses }}</div>
+                    <div class="stat-label">Kelas Aktif</div>
+                </div>
+                <div class="stat-icon" style="background:#dbeafe; color:#2563eb;"><i class="bi bi-book-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-value">{{ stats.total_enrollments }}</div>
+                    <div class="stat-label">Pendaftaran</div>
+                </div>
+                <div class="stat-icon" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-person-check-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-value">{{ stats.pending_submissions }}</div>
+                    <div class="stat-label">Tugas Belum Dinilai</div>
+                </div>
+                <div class="stat-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-hourglass-split"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Pengguna Terbaru</h6>
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-sm btn-sora-primary">Lihat Semua</a>
+            </div>
+            <div class="card-body-sora p-0">
+                <table class="table sora-table mb-0">
+                    <thead><tr><th>Pengguna</th><th>Peran</th><th>Bergabung</th></tr></thead>
+                    <tbody>
+                    {% for u in recent_users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;">
+                                    {{ u.first_name|first|upper|default:u.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-600" style="font-size:0.85rem;">{{ u.get_full_name|default:u.username }}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">{{ u.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill px-2 {% if u.is_admin %}badge-role-admin{% elif u.is_teacher %}badge-role-teacher{% else %}badge-role-student{% endif %}">
+                                {{ u.get_role_display }}
+                            </span>
+                        </td>
+                        <td class="text-muted" style="font-size:0.8rem;">{{ u.date_joined|date:"d M Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted py-4">Belum ada pengguna</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-book me-2 text-primary"></i>Kelas Terbaru</h6>
+                <a href="{% url 'courses:course_list' %}" class="btn btn-sm btn-sora-primary">Lihat Semua</a>
+            </div>
+            <div class="card-body-sora p-0">
+                <table class="table sora-table mb-0">
+                    <thead><tr><th>Kelas</th><th>Pengajar</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for course in recent_courses %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'courses:course_detail' slug=course.slug %}" class="text-decoration-none fw-500" style="color:#0f172a;font-size:0.85rem;">
+                                {{ course.title|truncatechars:30 }}
+                            </a>
+                        </td>
+                        <td class="text-muted" style="font-size:0.82rem;">{{ course.teacher.get_full_name|default:course.teacher.username }}</td>
+                        <td>
+                            <span class="badge rounded-pill px-2 {% if course.status == 'active' %}bg-success{% elif course.status == 'draft' %}bg-secondary{% else %}bg-warning{% endif %} bg-opacity-15 text-{% if course.status == 'active' %}success{% elif course.status == 'draft' %}secondary{% else %}warning{% endif %}">
+                                {{ course.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted py-4">Belum ada kelas</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

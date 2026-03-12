@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Hasil Kuis - Sora LMS{% endblock %}
+{% block page_title %}Hasil Kuis{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <!-- Score Card -->
+        <div class="sora-card mb-4 text-center">
+            <div class="card-body-sora py-5">
+                <div class="mb-3">
+                    {% if attempt.is_passed %}
+                    <div style="width:80px;height:80px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:2.5rem;">🎉</div>
+                    {% else %}
+                    <div style="width:80px;height:80px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:2.5rem;">😔</div>
+                    {% endif %}
+                </div>
+                <h2 class="fw-800 mb-1" style="color:{% if attempt.is_passed %}#16a34a{% else %}#dc2626{% endif %}; font-size:3rem;">
+                    {{ attempt.percentage|floatformat:0 }}%
+                </h2>
+                <p class="fw-600 fs-5 mb-1" style="color:{% if attempt.is_passed %}#15803d{% else %}#b91c1c{% endif %};">
+                    {% if attempt.is_passed %}LULUS{% else %}BELUM LULUS{% endif %}
+                </p>
+                <p class="text-muted mb-4">Nilai minimum lulus: {{ attempt.quiz.passing_score }}%</p>
+                <div class="d-flex justify-content-center gap-4 flex-wrap" style="font-size:0.875rem;">
+                    <div>
+                        <div class="text-muted small">Skor</div>
+                        <div class="fw-700">{{ attempt.score }}/{{ attempt.quiz.get_total_points }}</div>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Selesai</div>
+                        <div class="fw-700">{{ attempt.completed_at|date:"d M Y, H:i" }}</div>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Kuis</div>
+                        <div class="fw-700">{{ attempt.quiz.title|truncatechars:20 }}</div>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex justify-content-center gap-2">
+                    <a href="{% url 'quizzes:quiz_detail' pk=attempt.quiz.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Kembali ke Kuis
+                    </a>
+                    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="btn btn-sora-primary">
+                        <i class="bi bi-book me-1"></i>Ke Kelas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Answer Review -->
+        {% if attempt.quiz.show_results %}
+        <h6 class="fw-700 mb-3">Review Jawaban</h6>
+        {% for sa in student_answers %}
+        <div class="sora-card mb-3">
+            <div class="card-body-sora">
+                <div class="d-flex justify-content-between mb-2">
+                    <div class="fw-600" style="font-size:0.9rem;">{{ forloop.counter }}. {{ sa.question.text }}</div>
+                    <span class="badge rounded-pill {% if sa.is_correct %}bg-success{% elif sa.is_correct == False %}bg-danger{% else %}bg-secondary{% endif %} bg-opacity-15 text-{% if sa.is_correct %}success{% elif sa.is_correct == False %}danger{% else %}secondary{% endif %}" style="font-size:0.7rem;">
+                        {% if sa.is_correct %}+{{ sa.points_earned }} poin{% elif sa.is_correct == False %}0 poin{% else %}Manual{% endif %}
+                    </span>
+                </div>
+                {% if sa.selected_answer %}
+                <div class="small text-muted mb-1">Jawaban Anda:
+                    <span class="fw-600 {% if sa.is_correct %}text-success{% else %}text-danger{% endif %}">{{ sa.selected_answer.text }}</span>
+                </div>
+                {% if not sa.is_correct %}
+                {% for ans in sa.question.answers.all %}{% if ans.is_correct %}
+                <div class="small text-muted">Jawaban benar: <span class="fw-600 text-success">{{ ans.text }}</span></div>
+                {% endif %}{% endfor %}
+                {% endif %}
+                {% elif sa.text_answer %}
+                <div class="small text-muted">Jawaban: <em>{{ sa.text_answer }}</em></div>
+                {% endif %}
+                {% if sa.question.explanation %}
+                <div class="mt-2 p-2 rounded-2 small" style="background:#fef9c3; color:#854d0e;">
+                    <i class="bi bi-lightbulb me-1"></i>{{ sa.question.explanation }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

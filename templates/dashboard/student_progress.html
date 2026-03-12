@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Progress Belajar - Sora LMS{% endblock %}
+{% block page_title %}Progress Belajar{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left me-1"></i>{{ course.title }}
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Overall Progress -->
+        <div class="sora-card mb-4">
+            <div class="card-body-sora">
+                <h5 class="fw-700 mb-1">{{ course.title }}</h5>
+                <p class="text-muted small mb-3">Progress keseluruhan belajar Anda</p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-600">Progres Keseluruhan</span>
+                    <span class="fw-700" style="color:#6366f1; font-size:1.2rem;">{{ enrollment.progress|floatformat:0 }}%</span>
+                </div>
+                <div class="progress-bar-sora mb-4" style="height:12px; border-radius:6px;">
+                    <div class="progress-fill" style="width:{{ enrollment.progress }}%;"></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-4 text-center">
+                        <div class="fw-700" style="font-size:1.5rem; color:#6366f1;">{{ completed_materials|length }}</div>
+                        <div class="text-muted small">Materi Selesai</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="fw-700" style="font-size:1.5rem; color:#10b981;">{{ quiz_attempts.count }}</div>
+                        <div class="text-muted small">Kuis Dikerjakan</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="fw-700" style="font-size:1.5rem; color:#f59e0b;">{{ submissions.count }}</div>
+                        <div class="text-muted small">Tugas Dikumpulkan</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Materials Progress -->
+        <div class="sora-card mb-4">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-book me-2 text-primary"></i>Progress Materi</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                <table class="table sora-table mb-0">
+                    <thead><tr><th>Materi</th><th>Tipe</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for material in materials %}
+                    <tr>
+                        <td>
+                            <div class="fw-500" style="font-size:0.85rem;">{{ material.title }}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">{{ material.module.title }}</div>
+                        </td>
+                        <td class="text-muted" style="font-size:0.8rem;">{{ material.get_material_type_display }}</td>
+                        <td>
+                            {% if material.pk in completed_materials %}
+                            <span class="badge bg-success bg-opacity-15 text-success rounded-pill" style="font-size:0.72rem;">
+                                <i class="bi bi-check2 me-1"></i>Selesai
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary bg-opacity-15 text-secondary rounded-pill" style="font-size:0.72rem;">Belum</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quiz Attempts -->
+        {% if quiz_attempts %}
+        <div class="sora-card mb-4">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-question-circle me-2 text-success"></i>Hasil Kuis</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                <table class="table sora-table mb-0">
+                    <thead><tr><th>Kuis</th><th>Skor</th><th>Status</th><th>Tanggal</th></tr></thead>
+                    <tbody>
+                    {% for attempt in quiz_attempts %}
+                    <tr>
+                        <td class="fw-500" style="font-size:0.85rem;">{{ attempt.quiz.title }}</td>
+                        <td class="fw-700" style="color:#6366f1;">{{ attempt.percentage|floatformat:0 }}%</td>
+                        <td>
+                            <span class="badge rounded-pill {% if attempt.is_passed %}bg-success{% else %}bg-danger{% endif %} bg-opacity-15 text-{% if attempt.is_passed %}success{% else %}danger{% endif %}" style="font-size:0.72rem;">
+                                {% if attempt.is_passed %}Lulus{% else %}Tidak Lulus{% endif %}
+                            </span>
+                        </td>
+                        <td class="text-muted" style="font-size:0.8rem;">{{ attempt.completed_at|date:"d M Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Submissions -->
+        {% if submissions %}
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-journal-check me-2 text-warning"></i>Tugas Dikumpulkan</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                <table class="table sora-table mb-0">
+                    <thead><tr><th>Tugas</th><th>Status</th><th>Nilai</th><th>Tanggal</th></tr></thead>
+                    <tbody>
+                    {% for sub in submissions %}
+                    <tr>
+                        <td class="fw-500" style="font-size:0.85rem;">{{ sub.assignment.title }}</td>
+                        <td>
+                            <span class="badge rounded-pill {% if sub.status == 'graded' %}bg-success{% elif sub.status == 'late' %}bg-danger{% else %}bg-primary{% endif %} bg-opacity-15 text-{% if sub.status == 'graded' %}success{% elif sub.status == 'late' %}danger{% else %}primary{% endif %}" style="font-size:0.72rem;">
+                                {{ sub.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="fw-700" style="color:#6366f1;">
+                            {% if sub.score is not None %}{{ sub.score }}/{{ sub.assignment.max_score }}{% else %}-{% endif %}
+                        </td>
+                        <td class="text-muted" style="font-size:0.8rem;">{{ sub.submitted_at|date:"d M Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

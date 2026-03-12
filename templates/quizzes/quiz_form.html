@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Kuis - Sora LMS{% endblock %}
+{% block page_title %}{{ action }} Kuis{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-question-circle me-2 text-primary"></i>{{ action }} Kuis</h6>
+            </div>
+            <div class="card-body-sora">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12"><label>Judul Kuis *</label>{{ form.title }}</div>
+                        <div class="col-12"><label>Deskripsi</label>{{ form.description }}</div>
+                        <div class="col-md-4"><label>Batas Waktu (menit)</label>{{ form.time_limit }}</div>
+                        <div class="col-md-4"><label>Nilai Lulus (%)</label>{{ form.passing_score }}</div>
+                        <div class="col-md-4"><label>Maks Percobaan</label>{{ form.max_attempts }}</div>
+                        <div class="col-md-6"><label>Tanggal Mulai</label>{{ form.start_date }}</div>
+                        <div class="col-md-6"><label>Tanggal Selesai</label>{{ form.end_date }}</div>
+                        <div class="col-12">
+                            <div class="d-flex gap-4">
+                                <div class="form-check">{{ form.shuffle_questions }}<label class="form-check-label">Acak Soal</label></div>
+                                <div class="form-check">{{ form.show_results }}<label class="form-check-label">Tampilkan Hasil</label></div>
+                                <div class="form-check">{{ form.is_published }}<label class="form-check-label">Terbitkan</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-sora-primary px-4"><i class="bi bi-check2 me-2"></i>Simpan</button>
+                        <a href="{% url 'courses:course_detail' slug=course.slug %}" class="btn btn-outline-secondary px-4">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

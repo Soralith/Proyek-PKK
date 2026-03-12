@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ material.title }} - Sora LMS{% endblock %}
+{% block page_title %}{{ material.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="mb-3">
+            <a href="{% url 'courses:course_detail' slug=course.slug %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Kelas
+            </a>
+        </div>
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <div>
+                    <h5 class="fw-600 mb-0">{{ material.title }}</h5>
+                    <small class="text-muted">{{ material.module.course.title }} › {{ material.module.title }} · {{ material.get_material_type_display }}</small>
+                </div>
+                {% if user == material.module.course.teacher or user.is_admin %}
+                <a href="{% url 'courses:material_edit' pk=material.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body-sora">
+                {% if material.description %}
+                <p class="text-muted mb-4" style="font-size:0.9rem;">{{ material.description }}</p>
+                {% endif %}
+
+                {% if material.material_type == 'video' and material.url %}
+                    {% if 'youtube' in material.url or 'youtu.be' in material.url %}
+                    <div class="ratio ratio-16x9 mb-4 rounded-3 overflow-hidden">
+                        <iframe src="{{ material.url|replace:'watch?v=':'embed/'|replace:'youtu.be/':'www.youtube.com/embed/' }}" allowfullscreen></iframe>
+                    </div>
+                    {% else %}
+                    <a href="{{ material.url }}" target="_blank" class="btn btn-sora-primary mb-4">
+                        <i class="bi bi-play-circle me-2"></i>Buka Video
+                    </a>
+                    {% endif %}
+                {% elif material.material_type == 'link' and material.url %}
+                <a href="{{ material.url }}" target="_blank" class="btn btn-sora-primary mb-4">
+                    <i class="bi bi-box-arrow-up-right me-2"></i>Buka Tautan
+                </a>
+                {% elif material.file %}
+                <div class="p-4 rounded-3 mb-4 d-flex align-items-center gap-3" style="background:#f8fafc; border:2px dashed #e2e8f0;">
+                    <div style="width:48px;height:48px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;color:#7c3aed;font-size:1.5rem;">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-600">{{ material.file.name|cut:"courses/materials/" }}</div>
+                        <div class="text-muted small">{{ material.get_file_size_display }}</div>
+                    </div>
+                    <a href="{{ material.file.url }}" download class="btn btn-sora-primary">
+                        <i class="bi bi-download me-2"></i>Unduh
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if material.content %}
+                <div class="prose" style="font-size:0.95rem; line-height:1.8; color:#1e293b;">
+                    {{ material.content|linebreaks }}
+                </div>
+                {% endif %}
+
+                {% if user.is_student %}
+                <div class="alert alert-success p-3 mt-4">
+                    <i class="bi bi-check-circle-fill me-2"></i>Materi ini telah ditandai sebagai <strong>selesai</strong>.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

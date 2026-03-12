@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Nilai Tugas - Sora LMS{% endblock %}
+{% block page_title %}Nilai Tugas{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="sora-card">
+                    <div class="card-header-sora">
+                        <h6 class="fw-600 mb-0"><i class="bi bi-person me-2"></i>Pengumpulan Siswa</h6>
+                    </div>
+                    <div class="card-body-sora">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">
+                                {{ submission.student.first_name|first|upper|default:submission.student.username|first|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-600">{{ submission.student.get_full_name|default:submission.student.username }}</div>
+                                <div class="text-muted small">{{ submission.student.email }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-2 small text-muted">Dikumpulkan: <strong>{{ submission.submitted_at|date:"d M Y, H:i" }}</strong></div>
+                        {% if submission.file %}
+                        <a href="{{ submission.file.url }}" download class="btn btn-sm btn-sora-primary w-100 mb-2">
+                            <i class="bi bi-download me-1"></i>Unduh File Jawaban
+                        </a>
+                        {% endif %}
+                        {% if submission.text_answer %}
+                        <div class="p-3 rounded-3 mt-2" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                            <small class="text-muted fw-600">JAWABAN TEKS</small>
+                            <p class="small mt-1 mb-0">{{ submission.text_answer }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="sora-card">
+                    <div class="card-header-sora">
+                        <h6 class="fw-600 mb-0"><i class="bi bi-award me-2 text-warning"></i>Beri Nilai</h6>
+                    </div>
+                    <div class="card-body-sora">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label>Nilai (0 - {{ submission.assignment.max_score }})</label>
+                                {{ form.score }}
+                                <small class="text-muted">Nilai maksimum: {{ submission.assignment.max_score }}</small>
+                            </div>
+                            <div class="mb-4">
+                                <label>Komentar / Feedback</label>
+                                {{ form.feedback }}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-sora-primary px-4">
+                                    <i class="bi bi-check2 me-2"></i>Simpan Nilai
+                                </button>
+                                <a href="{% url 'assignments:assignment_detail' pk=submission.assignment.pk %}" class="btn btn-outline-secondary px-4">Batal</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

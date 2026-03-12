@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Hapus Soal - Sora LMS{% endblock %}
+{% block page_title %}Hapus Soal{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="sora-card">
+            <div class="card-body-sora text-center py-5">
+                <div style="width:64px;height:64px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;">⚠️</div>
+                <h5 class="fw-700 mb-2">Hapus Soal Ini?</h5>
+                <p class="text-muted mb-1">Soal #{{ question.order }} dari kuis <strong>{{ quiz.title }}</strong>:</p>
+                <p class="mb-4 p-3 rounded-3" style="background:#f8fafc; font-size:0.9rem; color:#374151;">
+                    "{{ question.text|truncatechars:120 }}"
+                </p>
+                <form method="post" class="d-flex gap-3 justify-content-center">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash me-2"></i>Ya, Hapus
+                    </button>
+                    <a href="{% url 'quizzes:quiz_detail' pk=quiz.pk %}" class="btn btn-outline-secondary px-4">Batal</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

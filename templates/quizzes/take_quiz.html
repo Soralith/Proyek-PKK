@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Mengerjakan: {{ quiz.title }}{% endblock %}
+{% block page_title %}{{ quiz.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        {% if quiz.time_limit %}
+        <div class="sora-card mb-3">
+            <div class="card-body-sora py-2 d-flex align-items-center justify-content-between">
+                <span class="fw-600"><i class="bi bi-clock me-2 text-warning"></i>Waktu Tersisa</span>
+                <span id="timer" class="fw-700 fs-4" style="color:#ef4444;">{{ quiz.time_limit }}:00</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="post" id="quiz-form">
+            {% csrf_token %}
+            {% for question in questions %}
+            <div class="sora-card mb-3">
+                <div class="card-body-sora">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fw-600" style="font-size:0.95rem; line-height:1.6;">
+                            <span class="badge bg-primary bg-opacity-10 text-primary me-2" style="font-size:0.7rem;">{{ forloop.counter }}</span>
+                            {{ question.text }}
+                        </div>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary ms-2" style="font-size:0.7rem; white-space:nowrap;">{{ question.points }} poin</span>
+                    </div>
+
+                    {% if question.question_type == 'multiple_choice' or question.question_type == 'true_false' %}
+                    <div class="d-flex flex-column gap-2">
+                        {% for answer in question.answers.all %}
+                        <label class="d-flex align-items-center gap-3 p-3 rounded-3 answer-option" style="cursor:pointer; border:2px solid #e2e8f0; transition:all 0.15s;">
+                            <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}" class="form-check-input m-0" style="flex-shrink:0;">
+                            <span style="font-size:0.9rem;">{{ answer.text }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <textarea name="text_{{ question.pk }}" class="form-control" rows="{% if question.question_type == 'essay' %}5{% else %}2{% endif %}" placeholder="{% if question.question_type == 'essay' %}Tulis jawaban esai Anda...{% else %}Tulis jawaban singkat...{% endif %}"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <span class="text-muted small">{{ questions|length }} soal · Pastikan semua soal terjawab</span>
+                <button type="submit" class="btn btn-sora-primary px-5" onclick="return confirm('Yakin ingin mengumpulkan kuis?')">
+                    <i class="bi bi-check2-circle me-2"></i>Kumpulkan Kuis
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Highlight selected answers
+document.querySelectorAll('.answer-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        const siblings = document.querySelectorAll(`input[name="${radio.name}"]`);
+        siblings.forEach(s => s.closest('.answer-option').style.cssText = 'cursor:pointer; border:2px solid #e2e8f0; transition:all 0.15s;');
+        radio.closest('.answer-option').style.cssText = 'cursor:pointer; border:2px solid #6366f1; background:#eef2ff; transition:all 0.15s;';
+    });
+});
+
+{% if quiz.time_limit %}
+// Timer
+let totalSeconds = {{ quiz.time_limit }} * 60;
+const timerEl = document.getElementById('timer');
+const interval = setInterval(() => {
+    totalSeconds--;
+    const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const secs = (totalSeconds % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${mins}:${secs}`;
+    if (totalSeconds <= 300) timerEl.style.color = '#ef4444';
+    if (totalSeconds <= 0) {
+        clearInterval(interval);
+        document.getElementById('quiz-form').submit();
+    }
+}, 1000);
+{% endif %}
+</script>
+{% endblock %}

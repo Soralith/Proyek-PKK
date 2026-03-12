@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Buat Pengumuman - Sora LMS{% endblock %}
+{% block page_title %}Buat Pengumuman{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <div>
+                    <h6 class="fw-600 mb-0"><i class="bi bi-megaphone me-2 text-primary"></i>Buat Pengumuman</h6>
+                    <small class="text-muted">{{ course.title }}</small>
+                </div>
+            </div>
+            <div class="card-body-sora">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Judul Pengumuman *</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="mb-4">
+                        <label>Isi Pengumuman *</label>
+                        {{ form.content }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sora-primary px-4">
+                            <i class="bi bi-megaphone me-2"></i>Terbitkan
+                        </button>
+                        <a href="{% url 'courses:course_detail' slug=course.slug %}" class="btn btn-outline-secondary px-4">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

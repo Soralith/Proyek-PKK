@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Guru - Sora LMS{% endblock %}
+{% block page_title %}Dashboard Pengajar{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.total_courses }}</div><div class="stat-label">Total Kelas</div></div>
+                <div class="stat-icon" style="background:#dbeafe; color:#2563eb;"><i class="bi bi-book-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.active_courses }}</div><div class="stat-label">Kelas Aktif</div></div>
+                <div class="stat-icon" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-check-circle-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.total_students }}</div><div class="stat-label">Total Siswa</div></div>
+                <div class="stat-icon" style="background:#ede9fe; color:#7c3aed;"><i class="bi bi-people-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.pending_grades }}</div><div class="stat-label">Perlu Dinilai</div></div>
+                <div class="stat-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-pencil-square"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-book me-2 text-primary"></i>Kelas Saya</h6>
+                <a href="{% url 'courses:course_create' %}" class="btn btn-sm btn-sora-primary"><i class="bi bi-plus me-1"></i>Buat Kelas</a>
+            </div>
+            <div class="card-body-sora">
+                {% if courses %}
+                <div class="row g-3">
+                {% for course in courses %}
+                <div class="col-md-6">
+                    <div class="course-card">
+                        <div class="course-cover">
+                            {% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% else %}<i class="bi bi-book"></i>{% endif %}
+                        </div>
+                        <div class="course-body">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <div class="course-title">{{ course.title|truncatechars:35 }}</div>
+                                <span class="badge rounded-pill ms-1 {% if course.status == 'active' %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-15 text-{% if course.status == 'active' %}success{% else %}secondary{% endif %}" style="font-size:0.68rem;">{{ course.get_status_display }}</span>
+                            </div>
+                            <div class="course-meta mb-2"><i class="bi bi-people me-1"></i>{{ course.get_student_count }} siswa</div>
+                            <a href="{% url 'courses:course_detail' slug=course.slug %}" class="btn btn-sm btn-sora-primary w-100">Kelola Kelas</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-book" style="font-size:3rem; color:#cbd5e1;"></i>
+                    <p class="text-muted mt-3 mb-3">Belum ada kelas. Buat kelas pertama Anda!</p>
+                    <a href="{% url 'courses:course_create' %}" class="btn btn-sora-primary"><i class="bi bi-plus me-1"></i>Buat Kelas</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-clock-history me-2 text-warning"></i>Tugas Masuk</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                {% for sub in recent_submissions %}
+                <div class="d-flex align-items-start gap-2 p-3 border-bottom">
+                    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;flex-shrink:0;">
+                        {{ sub.student.first_name|first|upper|default:sub.student.username|first|upper }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-600" style="font-size:0.82rem;">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">{{ sub.assignment.title|truncatechars:30 }}</div>
+                        <a href="{% url 'assignments:grade_submission' pk=sub.pk %}" class="badge bg-warning bg-opacity-15 text-warning text-decoration-none" style="font-size:0.7rem;">Nilai Sekarang</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4" style="font-size:0.85rem;">Tidak ada tugas yang perlu dinilai</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

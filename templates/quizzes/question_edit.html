@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Edit Soal - Sora LMS{% endblock %}
+{% block page_title %}Edit Soal{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="sora-card mb-3">
+            <div class="card-body-sora py-2 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="fw-600">{{ quiz.title }}</span>
+                    <span class="text-muted small ms-2">· Soal #{{ question.order }}</span>
+                </div>
+                <a href="{% url 'quizzes:quiz_detail' pk=quiz.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                </a>
+            </div>
+        </div>
+
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Edit Soal</h6>
+            </div>
+            <div class="card-body-sora">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label>Pertanyaan *</label>
+                            {{ form.text }}
+                        </div>
+                        <div class="col-md-6">
+                            <label>Tipe Soal *</label>
+                            {{ form.question_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label>Poin</label>
+                            {{ form.points }}
+                        </div>
+                        <div class="col-12">
+                            <label>Penjelasan Jawaban <span class="text-muted small">(opsional, ditampilkan setelah kuis)</span></label>
+                            {{ form.explanation }}
+                        </div>
+                    </div>
+
+                    <!-- Jawaban untuk pilihan ganda / benar-salah -->
+                    <div id="answers-section" class="mt-4">
+                        <label class="fw-600 mb-1">Opsi Jawaban</label>
+                        <div class="text-muted small mb-2">Pilih radio button di kiri untuk menandai jawaban yang benar</div>
+
+                        <div id="answer-list">
+                            {% for ans in existing_answers %}
+                            <div class="d-flex align-items-center gap-2 mb-2 answer-row">
+                                <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}"
+                                       class="form-check-input flex-shrink-0"
+                                       {% if forloop.counter0|stringformat:"s" == correct_index %}checked{% endif %}>
+                                <input type="text" name="answer_text" class="form-control"
+                                       placeholder="Opsi {{ forloop.counter }}"
+                                       value="{{ ans.text }}">
+                                <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 remove-answer"
+                                        style="padding:0.3rem 0.6rem;" title="Hapus opsi">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            {% empty %}
+                            {% for i in "0123" %}
+                            <div class="d-flex align-items-center gap-2 mb-2 answer-row">
+                                <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}" class="form-check-input flex-shrink-0">
+                                <input type="text" name="answer_text" class="form-control" placeholder="Opsi {{ forloop.counter }}">
+                                <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 remove-answer"
+                                        style="padding:0.3rem 0.6rem;"><i class="bi bi-x"></i></button>
+                            </div>
+                            {% endfor %}
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" id="add-answer" class="btn btn-sm btn-outline-secondary mt-1">
+                            <i class="bi bi-plus me-1"></i>Tambah Opsi
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-sora-primary px-4">
+                            <i class="bi bi-check2 me-2"></i>Simpan Perubahan
+                        </button>
+                        <a href="{% url 'quizzes:question_delete' pk=question.pk %}"
+                           class="btn btn-outline-danger px-4">
+                            <i class="bi bi-trash me-2"></i>Hapus Soal
+                        </a>
+                        <a href="{% url 'quizzes:quiz_detail' pk=quiz.pk %}" class="btn btn-outline-secondary px-4">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const answerSection = document.getElementById('answers-section');
+const answerList = document.getElementById('answer-list');
+
+// Show/hide answer section based on question type
+function toggleAnswerSection() {
+    const type = document.getElementById('id_question_type').value;
+    answerSection.style.display = ['multiple_choice', 'true_false'].includes(type) ? 'block' : 'none';
+
+    if (type === 'true_false') {
+        // Reset to Benar/Salah only
+        answerList.querySelectorAll('.answer-row').forEach((row, i) => {
+            if (i === 0) row.querySelector('input[name="answer_text"]').value = 'Benar';
+            else if (i === 1) row.querySelector('input[name="answer_text"]').value = 'Salah';
+            else row.remove();
+        });
+        document.getElementById('add-answer').style.display = 'none';
+    } else {
+        document.getElementById('add-answer').style.display = '';
+    }
+}
+
+document.getElementById('id_question_type').addEventListener('change', toggleAnswerSection);
+toggleAnswerSection();
+
+// Add new answer option
+document.getElementById('add-answer').addEventListener('click', () => {
+    const rows = answerList.querySelectorAll('.answer-row');
+    const idx = rows.length;
+    const div = document.createElement('div');
+    div.className = 'd-flex align-items-center gap-2 mb-2 answer-row';
+    div.innerHTML = `
+        <input type="radio" name="correct_answer" value="${idx}" class="form-check-input flex-shrink-0">
+        <input type="text" name="answer_text" class="form-control" placeholder="Opsi ${idx + 1}">
+        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 remove-answer" style="padding:0.3rem 0.6rem;">
+            <i class="bi bi-x"></i>
+        </button>`;
+    answerList.appendChild(div);
+    div.querySelector('.remove-answer').addEventListener('click', removeAnswer);
+});
+
+// Remove answer option
+function removeAnswer() {
+    const rows = answerList.querySelectorAll('.answer-row');
+    if (rows.length <= 2) {
+        alert('Minimal harus ada 2 opsi jawaban.');
+        return;
+    }
+    this.closest('.answer-row').remove();
+    // Re-index radio values
+    answerList.querySelectorAll('.answer-row').forEach((row, i) => {
+        row.querySelector('input[type="radio"]').value = i;
+    });
+}
+
+document.querySelectorAll('.remove-answer').forEach(btn => {
+    btn.addEventListener('click', removeAnswer);
+});
+</script>
+{% endblock %}

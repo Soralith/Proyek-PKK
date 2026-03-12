@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Siswa - Sora LMS{% endblock %}
+{% block page_title %}Dashboard Saya{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.enrolled_courses }}</div><div class="stat-label">Kelas Diikuti</div></div>
+                <div class="stat-icon" style="background:#dbeafe; color:#2563eb;"><i class="bi bi-book-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.completed_courses }}</div><div class="stat-label">Selesai</div></div>
+                <div class="stat-icon" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-trophy-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.pending_assignments }}</div><div class="stat-label">Tugas Tertunda</div></div>
+                <div class="stat-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-journal-text"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><div class="stat-value">{{ stats.avg_score|floatformat:0 }}</div><div class="stat-label">Rata-rata Nilai</div></div>
+                <div class="stat-icon" style="background:#ede9fe; color:#7c3aed;"><i class="bi bi-bar-chart-fill"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="sora-card mb-3">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-book me-2 text-primary"></i>Kelas Saya</h6>
+                <a href="{% url 'courses:course_list' %}" class="btn btn-sm btn-sora-primary">Jelajahi Kelas</a>
+            </div>
+            <div class="card-body-sora">
+                {% if enrollments %}
+                <div class="row g-3">
+                {% for enrollment in enrollments %}
+                <div class="col-md-6">
+                    <div class="course-card">
+                        <div class="course-cover">
+                            {% if enrollment.course.cover_image %}<img src="{{ enrollment.course.cover_image.url }}" alt="">{% else %}<i class="bi bi-book"></i>{% endif %}
+                        </div>
+                        <div class="course-body">
+                            <div class="course-title mb-1">{{ enrollment.course.title|truncatechars:35 }}</div>
+                            <div class="course-meta mb-2">
+                                <i class="bi bi-person me-1"></i>{{ enrollment.course.teacher.get_full_name|default:enrollment.course.teacher.username }}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-muted" style="font-size:0.75rem;">Progres</span>
+                                <span class="fw-600" style="font-size:0.8rem; color:#6366f1;">{{ enrollment.progress|floatformat:0 }}%</span>
+                            </div>
+                            <div class="progress-bar-sora mb-2">
+                                <div class="progress-fill" style="width:{{ enrollment.progress }}%;"></div>
+                            </div>
+                            <a href="{% url 'courses:course_detail' slug=enrollment.course.slug %}" class="btn btn-sm btn-sora-primary w-100">Lanjutkan Belajar</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-mortarboard" style="font-size:3rem; color:#cbd5e1;"></i>
+                    <p class="text-muted mt-3 mb-3">Belum ada kelas yang diikuti.</p>
+                    <a href="{% url 'courses:course_list' %}" class="btn btn-sora-primary">Jelajahi Kelas</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="sora-card mb-3">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-alarm me-2 text-danger"></i>Tugas Mendatang</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                {% for assignment in upcoming_assignments %}
+                <div class="p-3 border-bottom">
+                    <div class="fw-600" style="font-size:0.83rem;">{{ assignment.title|truncatechars:35 }}</div>
+                    <div class="text-muted mb-2" style="font-size:0.75rem;">{{ assignment.course.title|truncatechars:25 }}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge {% if assignment.is_overdue %}bg-danger{% else %}bg-warning{% endif %} bg-opacity-15 text-{% if assignment.is_overdue %}danger{% else %}warning{% endif %}" style="font-size:0.72rem;">
+                            <i class="bi bi-calendar3 me-1"></i>{{ assignment.due_date|date:"d M H:i" }}
+                        </span>
+                        <a href="{% url 'assignments:assignment_detail' pk=assignment.pk %}" class="btn btn-sm btn-sora-primary" style="font-size:0.75rem; padding: 0.25rem 0.6rem;">Kerjakan</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4" style="font-size:0.85rem;">Tidak ada tugas tertunda 🎉</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-star me-2 text-success"></i>Nilai Terbaru</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                {% for sub in recent_scores %}
+                <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                    <div>
+                        <div class="fw-600" style="font-size:0.82rem;">{{ sub.assignment.title|truncatechars:25 }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">{{ sub.assignment.course.title|truncatechars:20 }}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-700" style="color:#6366f1; font-size:1rem;">{{ sub.score }}</div>
+                        <div class="text-muted" style="font-size:0.7rem;">/ {{ sub.assignment.max_score }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4" style="font-size:0.85rem;">Belum ada nilai</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

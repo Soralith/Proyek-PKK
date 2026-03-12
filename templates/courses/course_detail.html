@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} - Sora LMS{% endblock %}
+{% block page_title %}{{ course.title|truncatechars:40 }}{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Course Header -->
+        <div class="sora-card mb-4">
+            <div class="course-cover" style="height:200px; border-radius:12px 12px 0 0;">
+                {% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">
+                {% else %}<i class="bi bi-book" style="font-size:4rem;"></i>{% endif %}
+            </div>
+            <div class="card-body-sora">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="fw-700 mb-1" style="color:#0f172a;">{{ course.title }}</h4>
+                        <div class="d-flex align-items-center gap-3" style="font-size:0.82rem; color:#64748b;">
+                            <span><i class="bi bi-person me-1"></i>{{ course.teacher.get_full_name|default:course.teacher.username }}</span>
+                            <span><i class="bi bi-people me-1"></i>{{ course.get_student_count }} siswa</span>
+                            {% if course.category %}<span><i class="bi bi-tag me-1"></i>{{ course.category }}</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge px-3 py-2 rounded-pill {% if course.status == 'active' %}bg-success{% elif course.status == 'draft' %}bg-secondary{% else %}bg-warning{% endif %} bg-opacity-15 text-{% if course.status == 'active' %}success{% elif course.status == 'draft' %}secondary{% else %}warning{% endif %}">
+                            {{ course.get_status_display }}
+                        </span>
+                        {% if user == course.teacher or user.is_admin %}
+                        <a href="{% url 'courses:course_edit' slug=course.slug %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-muted" style="font-size:0.9rem; line-height:1.7;">{{ course.description }}</p>
+
+                {% if user.is_student and not is_enrolled %}
+                <div class="alert alert-info p-3 mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Anda belum terdaftar di kelas ini. Hubungi guru atau admin untuk didaftarkan.
+                </div>
+                {% endif %}
+
+                {% if user.is_student and is_enrolled %}
+                <div class="p-3 rounded-3 mt-2" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-600" style="font-size:0.85rem;">Progress Belajar Anda</span>
+                        <span class="fw-700" style="color:#6366f1;">{{ enrollment.progress|floatformat:0 }}%</span>
+                    </div>
+                    <div class="progress-bar-sora">
+                        <div class="progress-fill" style="width:{{ enrollment.progress }}%;"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Modules & Materials -->
+        <div class="sora-card mb-4">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-collection me-2 text-primary"></i>Materi Pembelajaran</h6>
+                {% if user == course.teacher or user.is_admin %}
+                <a href="{% url 'courses:module_create' slug=course.slug %}" class="btn btn-sm btn-sora-primary">
+                    <i class="bi bi-plus me-1"></i>Tambah Modul
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body-sora p-0">
+                {% for module in modules %}
+                <div class="border-bottom">
+                    <div class="d-flex align-items-center justify-content-between p-3" style="cursor:pointer; background:#fafafa;"
+                         data-bs-toggle="collapse" data-bs-target="#module-{{ module.pk }}">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:28px;height:28px;border-radius:8px;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">
+                                {{ forloop.counter }}
+                            </div>
+                            <div>
+                                <div class="fw-600" style="font-size:0.9rem;">{{ module.title }}</div>
+                                {% if module.description %}<div class="text-muted" style="font-size:0.75rem;">{{ module.description|truncatechars:50 }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:0.7rem;">{{ module.materials.count }} materi</span>
+                            {% if user == course.teacher or user.is_admin %}
+                            <a href="{% url 'courses:module_edit' pk=module.pk %}" class="btn btn-xs btn-outline-secondary" style="font-size:0.72rem; padding:0.2rem 0.5rem;" onclick="event.stopPropagation()">Edit</a>
+                            {% endif %}
+                            <i class="bi bi-chevron-down text-muted"></i>
+                        </div>
+                    </div>
+                    <div class="collapse show" id="module-{{ module.pk }}">
+                        {% for material in module.materials.all %}
+                        {% if material.is_published or user == course.teacher or user.is_admin %}
+                        <div class="d-flex align-items-center justify-content-between px-4 py-2 border-top" style="background:white;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-{% if material.material_type == 'video' %}play-circle{% elif material.material_type == 'document' %}file-text{% elif material.material_type == 'presentation' %}easel{% elif material.material_type == 'link' %}link-45deg{% else %}file-richtext{% endif %} text-{% if material.material_type == 'video' %}danger{% elif material.material_type == 'document' %}primary{% elif material.material_type == 'presentation' %}warning{% else %}success{% endif %}"></i>
+                                <div>
+                                    <div style="font-size:0.85rem; font-weight:500;">{{ material.title }}</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">{{ material.get_material_type_display }}{% if material.file %} · {{ material.get_file_size_display }}{% endif %}</div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1">
+                                {% if is_enrolled or user == course.teacher or user.is_admin %}
+                                <a href="{% url 'courses:material_detail' pk=material.pk %}" class="btn btn-sm btn-sora-primary" style="font-size:0.75rem; padding:0.25rem 0.6rem;">Buka</a>
+                                {% endif %}
+                                {% if user == course.teacher or user.is_admin %}
+                                <a href="{% url 'courses:material_edit' pk=material.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:0.75rem; padding:0.25rem 0.6rem;">Edit</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% empty %}
+                        <div class="px-4 py-3 text-muted" style="font-size:0.82rem;">Belum ada materi di modul ini.</div>
+                        {% endfor %}
+                        {% if user == course.teacher or user.is_admin %}
+                        <div class="px-4 py-2 border-top" style="background:#fefefe;">
+                            <a href="{% url 'courses:material_create' module_pk=module.pk %}" class="btn btn-sm" style="font-size:0.75rem; color:#6366f1; padding:0.2rem 0;">
+                                <i class="bi bi-plus me-1"></i>Tambah Materi
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-collection" style="font-size:2.5rem; color:#cbd5e1;"></i>
+                    <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">Belum ada modul. {% if user == course.teacher or user.is_admin %}Tambahkan modul pertama!{% endif %}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        {% if is_enrolled or user == course.teacher or user.is_admin %}
+        <div class="sora-card mb-3">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-lightning me-2 text-warning"></i>Aksi Cepat</h6>
+            </div>
+            <div class="card-body-sora d-grid gap-2">
+                <a href="{% url 'assignments:assignment_list' course_slug=course.slug %}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-journal-check me-2"></i>Lihat Tugas
+                </a>
+                <a href="{% url 'quizzes:quiz_list' course_slug=course.slug %}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-question-circle me-2"></i>Kuis & Ujian
+                </a>
+                {% if user == course.teacher or user.is_admin %}
+                <a href="{% url 'assignments:assignment_create' course_slug=course.slug %}" class="btn btn-outline-warning btn-sm">
+                    <i class="bi bi-plus me-2"></i>Buat Tugas
+                </a>
+                <a href="{% url 'quizzes:quiz_create' course_slug=course.slug %}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-plus me-2"></i>Buat Kuis
+                </a>
+                <a href="{% url 'courses:manage_enrollments' slug=course.slug %}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-people me-2"></i>Kelola Siswa
+                </a>
+                <a href="{% url 'courses:announcement_create' slug=course.slug %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-megaphone me-2"></i>Buat Pengumuman
+                </a>
+                <a href="{% url 'dashboard:progress_report' course_slug=course.slug %}" class="btn btn-outline-dark btn-sm">
+                    <i class="bi bi-bar-chart me-2"></i>Laporan Progres
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if announcements %}
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-megaphone me-2 text-primary"></i>Pengumuman</h6>
+            </div>
+            <div class="card-body-sora p-0">
+                {% for ann in announcements %}
+                <div class="p-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="fw-600 mb-1" style="font-size:0.85rem;">{{ ann.title }}</div>
+                    <p class="text-muted mb-1" style="font-size:0.78rem; line-height:1.5;">{{ ann.content|truncatechars:100 }}</p>
+                    <span class="text-muted" style="font-size:0.72rem;"><i class="bi bi-clock me-1"></i>{{ ann.created_at|date:"d M Y" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

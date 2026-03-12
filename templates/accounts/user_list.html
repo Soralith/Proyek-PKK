@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Kelola Pengguna - Sora LMS{% endblock %}
+{% block page_title %}Kelola Pengguna{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-700 mb-1" style="color:#0f172a;">Manajemen Pengguna</h5>
+        <p class="text-muted small mb-0">{{ users.count }} pengguna ditemukan</p>
+    </div>
+    <a href="{% url 'accounts:user_create' %}" class="btn btn-sora-primary">
+        <i class="bi bi-person-plus me-1"></i>Tambah Pengguna
+    </a>
+</div>
+
+<div class="sora-card mb-4">
+    <div class="card-body-sora">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-7">
+                <div class="input-group">
+                    <span class="input-group-text" style="background:#f8fafc; border-color:#e2e8f0;"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Cari nama, username, email..." value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="role" class="form-select">
+                    <option value="">Semua Peran</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>Guru</option>
+                    <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Siswa</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sora-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="sora-card">
+    <div class="card-body-sora p-0">
+        <table class="table sora-table mb-0">
+            <thead>
+                <tr>
+                    <th>Pengguna</th>
+                    <th>Peran</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Bergabung</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0; overflow:hidden;">
+                            {% if u.avatar %}<img src="{{ u.avatar.url }}" style="width:100%;height:100%;object-fit:cover;">{% else %}{{ u.first_name|first|upper|default:u.username|first|upper }}{% endif %}
+                        </div>
+                        <div>
+                            <div class="fw-600" style="font-size:0.875rem;">{{ u.get_full_name|default:u.username }}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">@{{ u.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge rounded-pill px-2 {% if u.is_admin %}badge-role-admin{% elif u.is_teacher %}badge-role-teacher{% else %}badge-role-student{% endif %}">
+                        {{ u.get_role_display }}
+                    </span>
+                </td>
+                <td class="text-muted" style="font-size:0.82rem;">{{ u.email|default:"-" }}</td>
+                <td>
+                    <span class="badge rounded-pill {% if u.is_active %}bg-success{% else %}bg-danger{% endif %} bg-opacity-15 text-{% if u.is_active %}success{% else %}danger{% endif %}">
+                        {% if u.is_active %}Aktif{% else %}Nonaktif{% endif %}
+                    </span>
+                </td>
+                <td class="text-muted" style="font-size:0.8rem;">{{ u.date_joined|date:"d M Y" }}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'accounts:user_edit' pk=u.pk %}" class="btn btn-xs btn-outline-secondary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">Edit</a>
+                        {% if u != request.user %}
+                        <a href="{% url 'accounts:user_delete' pk=u.pk %}" class="btn btn-xs btn-outline-danger" style="font-size:0.72rem; padding:0.25rem 0.6rem;">Hapus</a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-5">Tidak ada pengguna ditemukan.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

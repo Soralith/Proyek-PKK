@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Profil - Sora LMS{% endblock %}
+{% block page_title %}Profil Saya{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-person-circle me-2 text-primary"></i>Profil Pengguna</h6>
+                <a href="{% url 'accounts:profile_edit' %}" class="btn btn-sm btn-sora-primary">
+                    <i class="bi bi-pencil me-1"></i>Edit Profil
+                </a>
+            </div>
+            <div class="card-body-sora">
+                <div class="d-flex align-items-center gap-4 mb-4">
+                    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:2rem;overflow:hidden;flex-shrink:0;">
+                        {% if user_profile.avatar %}<img src="{{ user_profile.avatar.url }}" style="width:100%;height:100%;object-fit:cover;">{% else %}{{ user_profile.first_name|first|upper|default:user_profile.username|first|upper }}{% endif %}
+                    </div>
+                    <div>
+                        <h4 class="fw-700 mb-1">{{ user_profile.get_full_name|default:user_profile.username }}</h4>
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                            <span class="badge px-3 py-2 {% if user_profile.is_admin %}badge-role-admin{% elif user_profile.is_teacher %}badge-role-teacher{% else %}badge-role-student{% endif %} rounded-pill">{{ user_profile.get_role_display }}</span>
+                            <span class="text-muted small">@{{ user_profile.username }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i>Email</div>
+                            <div class="fw-500">{{ user_profile.email|default:"Belum diisi" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>Telepon</div>
+                            <div class="fw-500">{{ user_profile.phone|default:"Belum diisi" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div class="text-muted small mb-1"><i class="bi bi-calendar me-1"></i>Tanggal Lahir</div>
+                            <div class="fw-500">{{ user_profile.date_of_birth|date:"d M Y"|default:"Belum diisi" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div class="text-muted small mb-1"><i class="bi bi-clock me-1"></i>Bergabung Sejak</div>
+                            <div class="fw-500">{{ user_profile.date_joined|date:"d M Y" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if user_profile.bio %}
+                <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                    <div class="text-muted small mb-1"><i class="bi bi-person me-1"></i>Bio</div>
+                    <div class="fw-500" style="line-height:1.7;">{{ user_profile.bio }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

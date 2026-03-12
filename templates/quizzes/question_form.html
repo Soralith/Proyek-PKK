@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Tambah Soal - Sora LMS{% endblock %}
+{% block page_title %}Tambah Soal{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="sora-card mb-3">
+            <div class="card-body-sora py-2">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="fw-600">{{ quiz.title }}</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">{{ quiz.get_question_count }} soal</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Soal</h6>
+            </div>
+            <div class="card-body-sora">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12"><label>Pertanyaan *</label>{{ form.text }}</div>
+                        <div class="col-md-6">
+                            <label>Tipe Soal *</label>
+                            {{ form.question_type }}
+                        </div>
+                        <div class="col-md-6"><label>Poin</label>{{ form.points }}</div>
+                        <div class="col-12"><label>Penjelasan Jawaban (opsional)</label>{{ form.explanation }}</div>
+                    </div>
+
+                    <!-- Answer options for MC/TF -->
+                    <div id="answers-section" class="mt-4">
+                        <label class="fw-600 mb-2">Opsi Jawaban</label>
+                        <div class="mb-2 small text-muted">Tandai jawaban yang benar dengan memilih radio button</div>
+                        {% for i in "01234" %}
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}" class="form-check-input flex-shrink-0">
+                            <input type="text" name="answer_text" class="form-control" placeholder="Opsi {{ forloop.counter }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" name="save" class="btn btn-sora-primary px-4">
+                            <i class="bi bi-check2 me-2"></i>Simpan & Selesai
+                        </button>
+                        <button type="submit" name="add_more" class="btn btn-outline-primary px-4">
+                            <i class="bi bi-plus me-2"></i>Simpan & Tambah Lagi
+                        </button>
+                        <a href="{% url 'quizzes:quiz_detail' pk=quiz.pk %}" class="btn btn-outline-secondary px-4">Selesai</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('id_question_type').addEventListener('change', function() {
+    const section = document.getElementById('answers-section');
+    section.style.display = ['multiple_choice','true_false'].includes(this.value) ? 'block' : 'none';
+    if (this.value === 'true_false') {
+        const inputs = section.querySelectorAll('input[name="answer_text"]');
+        inputs[0].value = 'Benar'; inputs[1].value = 'Salah';
+        inputs.forEach((inp, i) => { if(i > 1) inp.closest('.d-flex').style.display = 'none'; });
+    } else {
+        section.querySelectorAll('input[name="answer_text"]').forEach(inp => {
+            inp.closest('.d-flex').style.display = '';
+        });
+    }
+});
+document.getElementById('id_question_type').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

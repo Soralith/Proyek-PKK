@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Daftar Kelas - Sora LMS{% endblock %}
+{% block page_title %}Kelas{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-700 mb-1" style="color:#0f172a;">
+            {% if user.is_student %}Kelas Saya & Tersedia{% elif user.is_teacher %}Kelas yang Diajarkan{% else %}Semua Kelas{% endif %}
+        </h5>
+        <p class="text-muted small mb-0">{{ courses.count }} kelas ditemukan</p>
+    </div>
+    {% if user.is_teacher or user.is_admin %}
+    <a href="{% url 'courses:course_create' %}" class="btn btn-sora-primary">
+        <i class="bi bi-plus-lg me-1"></i>Buat Kelas Baru
+    </a>
+    {% endif %}
+</div>
+
+<div class="sora-card mb-4">
+    <div class="card-body-sora">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-7">
+                <label class="mb-1">Cari Kelas</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background:#f8fafc; border-color:#e2e8f0;"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Nama kelas..." value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="mb-1">Kategori</label>
+                <select name="category" class="form-select">
+                    <option value="">Semua Kategori</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.pk }}" {% if category_id == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sora-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if courses %}
+<div class="row g-3">
+{% for course in courses %}
+<div class="col-sm-6 col-lg-4">
+    <div class="course-card">
+        <div class="course-cover">
+            {% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">
+            {% else %}
+            <div style="background: linear-gradient(135deg, hsl({{ forloop.counter0|add:200 }}, 70%, 40%), hsl({{ forloop.counter0|add:260 }}, 70%, 50%)); width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:rgba(255,255,255,0.7);">
+                <i class="bi bi-book"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div class="course-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="course-title mb-0">{{ course.title|truncatechars:40 }}</h6>
+                <span class="badge rounded-pill ms-2 {% if course.status == 'active' %}bg-success{% elif course.status == 'draft' %}bg-secondary{% else %}bg-warning{% endif %} bg-opacity-15 text-{% if course.status == 'active' %}success{% elif course.status == 'draft' %}secondary{% else %}warning{% endif %}" style="font-size:0.68rem; white-space:nowrap;">{{ course.get_status_display }}</span>
+            </div>
+            <p class="text-muted small mb-2" style="font-size:0.78rem; line-height:1.5;">{{ course.description|truncatechars:80 }}</p>
+            <div class="d-flex align-items-center gap-3 mb-3" style="font-size:0.78rem; color:#64748b;">
+                <span><i class="bi bi-person me-1"></i>{{ course.teacher.get_full_name|default:course.teacher.username|truncatechars:15 }}</span>
+                <span><i class="bi bi-people me-1"></i>{{ course.get_student_count }} siswa</span>
+            </div>
+            {% if course.category %}
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill mb-2" style="font-size:0.7rem;">{{ course.category.name }}</span>
+            {% endif %}
+            <div class="d-grid">
+                <a href="{% url 'courses:course_detail' slug=course.slug %}" class="btn btn-sm btn-sora-primary">
+                    {% if user.is_student %}
+                        {% if course.pk in enrolled_ids %}Lanjutkan Belajar{% else %}Lihat Kelas{% endif %}
+                    {% else %}Kelola Kelas{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-search" style="font-size:3rem; color:#cbd5e1;"></i>
+    <p class="text-muted mt-3 mb-0">Tidak ada kelas ditemukan.</p>
+    {% if user.is_teacher or user.is_admin %}
+    <a href="{% url 'courses:course_create' %}" class="btn btn-sora-primary mt-3">Buat Kelas Pertama</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

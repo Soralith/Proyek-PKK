@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - Sora LMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-wrapper { width: 100%; max-width: 420px; padding: 1rem; }
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        }
+        .brand-mark {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.4rem;
+            margin: 0 auto 1rem;
+        }
+        h4 { font-weight: 700; color: #0f172a; }
+        .form-control {
+            border-radius: 10px;
+            border-color: #e2e8f0;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.9rem;
+        }
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            padding: 0.7rem;
+            font-size: 0.95rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-login:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+        label { font-size: 0.82rem; font-weight: 500; color: #475569; margin-bottom: 0.3rem; }
+        .divider { border-color: #e2e8f0; }
+        .input-group-text {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            border-radius: 10px 0 0 10px !important;
+            color: #94a3b8;
+        }
+        .input-group .form-control { border-radius: 0 10px 10px 0 !important; }
+        .alert { border-radius: 10px; font-size: 0.85rem; border: none; }
+    </style>
+</head>
+<body>
+<div class="auth-wrapper">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} mb-3">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div class="brand-mark">S</div>
+            <h4>Selamat Datang</h4>
+            <p class="text-muted small mb-0">Masuk ke akun Sora LMS Anda</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label>Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    {{ form.username }}
+                </div>
+            </div>
+            <div class="mb-4">
+                <label>Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    {{ form.password }}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
+            </button>
+        </form>
+
+        <hr class="divider my-4">
+        <p class="text-center text-muted small mb-0">
+            Belum punya akun?
+            <a href="{% url 'accounts:register' %}" class="text-decoration-none fw-600" style="color:#6366f1;">Daftar sekarang</a>
+        </p>
+    </div>
+    <p class="text-center text-white-50 small mt-3">© 2024 Sora LMS. All rights reserved.</p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

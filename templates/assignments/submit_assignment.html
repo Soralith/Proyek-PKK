@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Kumpulkan Tugas - Sora LMS{% endblock %}
+{% block page_title %}Kumpulkan Tugas{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="sora-card mb-3">
+            <div class="card-body-sora">
+                <h6 class="fw-700">{{ assignment.title }}</h6>
+                <p class="text-muted small mb-2">{{ assignment.description|truncatechars:150 }}</p>
+                <div class="d-flex gap-3" style="font-size:0.8rem; color:#64748b;">
+                    <span><i class="bi bi-calendar3 me-1 {% if assignment.is_overdue %}text-danger{% else %}text-warning{% endif %}"></i>Deadline: {{ assignment.due_date|date:"d M Y, H:i" }}</span>
+                    <span><i class="bi bi-award me-1 text-primary"></i>Maks: {{ assignment.max_score }}</span>
+                </div>
+                {% if assignment.is_overdue %}
+                <div class="alert alert-warning p-2 mt-2 mb-0 small"><i class="bi bi-exclamation-triangle me-1"></i>Deadline sudah lewat, pengumpulan akan ditandai terlambat.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-cloud-upload me-2 text-primary"></i>Form Pengumpulan</h6>
+            </div>
+            <div class="card-body-sora">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Upload File Jawaban</label>
+                        {{ form.file }}
+                        <small class="text-muted">PDF, DOCX, XLSX, dll. Maks 50MB</small>
+                    </div>
+                    <div class="mb-4">
+                        <label>Jawaban Teks (opsional)</label>
+                        {{ form.text_answer }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sora-primary px-4">
+                            <i class="bi bi-cloud-upload me-2"></i>Kumpulkan
+                        </button>
+                        <a href="{% url 'assignments:assignment_detail' pk=assignment.pk %}" class="btn btn-outline-secondary px-4">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

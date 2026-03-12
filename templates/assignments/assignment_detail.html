@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}{{ assignment.title }} - Sora LMS{% endblock %}
+{% block page_title %}{{ assignment.title }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="sora-card mb-4">
+            <div class="card-header-sora">
+                <div>
+                    <h5 class="fw-700 mb-1">{{ assignment.title }}</h5>
+                    <small class="text-muted">{{ course.title }}</small>
+                </div>
+                {% if user == course.teacher or user.is_admin %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'assignments:assignment_edit' pk=assignment.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a href="{% url 'assignments:assignment_delete' pk=assignment.pk %}" class="btn btn-sm btn-outline-danger">Hapus</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body-sora">
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="p-3 rounded-3" style="background:#fef3c7;">
+                            <div style="font-size:0.72rem; color:#92400e; font-weight:600; text-transform:uppercase;">DEADLINE</div>
+                            <div class="fw-700 mt-1" style="color:#d97706; font-size:0.9rem;">{{ assignment.due_date|date:"d M Y, H:i" }}</div>
+                            {% if assignment.is_overdue %}<div class="text-danger small">Sudah lewat</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3" style="background:#dbeafe;">
+                            <div style="font-size:0.72rem; color:#1e40af; font-weight:600; text-transform:uppercase;">NILAI MAKS</div>
+                            <div class="fw-700 mt-1" style="color:#2563eb; font-size:1.1rem;">{{ assignment.max_score }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-600 mb-2">Deskripsi Tugas</h6>
+                <p style="font-size:0.9rem; line-height:1.8;">{{ assignment.description|linebreaks }}</p>
+
+                {% if assignment.attachment %}
+                <div class="p-3 rounded-3 d-flex align-items-center gap-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                    <i class="bi bi-paperclip text-primary fs-4"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-600 small">File Terlampir</div>
+                        <div class="text-muted" style="font-size:0.75rem;">{{ assignment.attachment.name|cut:"assignments/files/" }}</div>
+                    </div>
+                    <a href="{{ assignment.attachment.url }}" download class="btn btn-sm btn-sora-primary">
+                        <i class="bi bi-download me-1"></i>Unduh
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if user.is_student and not submission %}
+                <div class="mt-4">
+                    <a href="{% url 'assignments:submit_assignment' pk=assignment.pk %}" class="btn btn-sora-primary">
+                        <i class="bi bi-cloud-upload me-2"></i>Kumpulkan Tugas
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if submission %}
+                <div class="mt-4 p-4 rounded-3" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+                    <h6 class="fw-700 text-success mb-3"><i class="bi bi-check-circle-fill me-2"></i>Tugas Sudah Dikumpulkan</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Status</small>
+                            <div class="fw-600">{{ submission.get_status_display }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Dikumpulkan</small>
+                            <div class="fw-600">{{ submission.submitted_at|date:"d M Y, H:i" }}</div>
+                        </div>
+                        {% if submission.score is not None %}
+                        <div class="col-6">
+                            <small class="text-muted">Nilai</small>
+                            <div class="fw-700 fs-4" style="color:#6366f1;">{{ submission.score }} <small class="text-muted fs-6">/ {{ assignment.max_score }}</small></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if submission.feedback %}
+                    <div>
+                        <small class="text-muted">Komentar Guru</small>
+                        <p class="mb-0 mt-1" style="font-size:0.875rem;">{{ submission.feedback }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if submissions %}
+    <div class="col-lg-5">
+        <div class="sora-card">
+            <div class="card-header-sora">
+                <h6 class="fw-600 mb-0"><i class="bi bi-people me-2"></i>Pengumpulan Siswa</h6>
+                <span class="badge bg-primary bg-opacity-10 text-primary">{{ submissions.count }}</span>
+            </div>
+            <div class="card-body-sora p-0">
+                {% for sub in submissions %}
+                <div class="d-flex align-items-center justify-content-between p-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-size:0.78rem;font-weight:700;">
+                            {{ sub.student.first_name|first|upper|default:sub.student.username|first|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-600" style="font-size:0.83rem;">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                            <div class="text-muted" style="font-size:0.72rem;">{{ sub.submitted_at|date:"d M, H:i" }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if sub.score is not None %}
+                        <span class="fw-700" style="color:#6366f1; font-size:0.9rem;">{{ sub.score }}</span>
+                        {% endif %}
+                        <a href="{% url 'assignments:grade_submission' pk=sub.pk %}" class="btn btn-xs btn-sora-primary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">
+                            {% if sub.status == 'graded' %}Edit Nilai{% else %}Nilai{% endif %}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
